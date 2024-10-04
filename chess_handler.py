@@ -25,16 +25,7 @@ class ChessHandler:
         Returns:
             list[np.uint64]: A list of 12 bitboards
         """
+        
         piece = board.get_piece_at(move.initial_square)
         board.destroy_piece(move.initial_square)
         board.add_piece(move.target_square, piece)
-
-if __name__ == '__main__':
-    chess_handler = ChessHandler()
-    
-    test_board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    
-    #print(test_board)
-    test_move = Move(0, 12, 28)
-    chess_handler.make_move(test_move, test_board)
-    print(test_board)

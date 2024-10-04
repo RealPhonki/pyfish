@@ -10,6 +10,8 @@
 
 import numpy as np
 
+from debug import *
+
 class Pieces:
     """ Assigns piece names to the different piece encodings (bitboard indices) """
     WHITE_KING = 0
@@ -72,11 +74,11 @@ class Board():
             butterfly_index (int): The butterfly index
             piece_encoding (int): The piece encoding
         """
-        self.bitboards[piece_encoding] = self.bitboards[piece_encoding] | (1 << butterfly_index)
+        piece_location = np.uint64(1) << butterfly_index
+        self.bitboards[piece_encoding] = self.bitboards[piece_encoding] | piece_location
     
     def destroy_piece(self, butterfly_index: int) -> None:
-        """
-        Destroys a piece at a given butterfly index
+        """ Destroys a piece at a given butterfly index
         - reference: https://www.chessprogramming.org/Butterfly_Boards
 
         Args:
@@ -117,21 +119,6 @@ class Board():
                 column += 1
         
         return bitboards
-    
-    @staticmethod
-    def display_bitboard(bitboard: np.uint64) -> None:
-        """ Displays the given bitboard to the CLI
-
-        Args:
-            bitboard (np.uint64): The 64 bit board to display
-        """
-        bitboard = bin(bitboard)[2:].rjust(64, '0')
-        for row in range(8):
-            for tile in range(7, -1, -1):
-                print(f'{bitboard[row*8+tile]} ', end='')
-            print(f'| {8-row}')
-        print('----------------+')
-        print('a b c d e f g h')
     
     def __str__(self) -> str:
         """ Displays the given board to the CLI
