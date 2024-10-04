@@ -11,7 +11,7 @@
 import numpy as np
 
 class Pieces:
-    """ Assigns piece names to the different bitboard indices """
+    """ Assigns piece names to the different piece encodings (bitboard indices) """
     WHITE_KING = 0
     WHITE_QUEEN = 1
     WHITE_ROOK = 2
@@ -40,11 +40,50 @@ class Board():
     - For all bitboards, LSB = A1 (aka Little-Endian Rank-File mapping)
         reference: https://www.chessprogramming.org/Square_Mapping_Considerations
     """
-    def __init__(self, fen_string: str) -> None:
+    
+    BITMASK64 = np.uint64((1 << 64) - 1)
+    
+    def __init__(
+            self,
+            fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+            ) -> None:
         self.bitboards = self.load_from_fen(fen_string)
     
-    def __getitem__(self, index: int) -> np.uint64:
-        return self.bitboards[index]
+    def get_piece_at(self, butterfly_index: int) -> int:
+        """ Returns the piece encoding for a given butterfly index
+        - reference: https://www.chessprogramming.org/Butterfly_Boards
+
+        Args:
+            butterfly_index (int): The butterfly index
+
+        Returns:
+            int: The piece encoding
+        """
+        for index, bitboard in enumerate(self.bitboards):
+            if ((bitboard >> butterfly_index) & 1) != 0:
+                return index
+        return None
+    
+    def add_piece(self, butterfly_index: int, piece_encoding: int) -> None:
+        """ Adds a piece at the given butterfly index to the specified bitboard
+        - reference: https://www.chessprogramming.org/Butterfly_Boards
+
+        Args:
+            butterfly_index (int): The butterfly index
+            piece_encoding (int): The piece encoding
+        """
+        self.bitboards[piece_encoding] = self.bitboards[piece_encoding] | (1 << butterfly_index)
+    
+    def destroy_piece(self, butterfly_index: int) -> None:
+        """
+        Destroys a piece at a given butterfly index
+        - reference: https://www.chessprogramming.org/Butterfly_Boards
+
+        Args:
+            butterfly_index (int): The butterfly index
+        """
+        mask = ~np.uint64(1 << butterfly_index) & self.BITMASK64
+        self.bitboards = self.bitboards & mask
     
     @staticmethod
     def load_from_fen(fen: str) -> list[np.uint64]:
@@ -79,13 +118,14 @@ class Board():
         
         return bitboards
     
-    def display_bitboard(self, bitboard_index: int) -> None:
+    @staticmethod
+    def display_bitboard(bitboard: np.uint64) -> None:
         """ Displays the given bitboard to the CLI
 
         Args:
             bitboard (np.uint64): The 64 bit board to display
         """
-        bitboard = bin(self.bitboards[bitboard_index])[2:].rjust(64, '0')
+        bitboard = bin(bitboard)[2:].rjust(64, '0')
         for row in range(8):
             for tile in range(7, -1, -1):
                 print(f'{bitboard[row*8+tile]} ', end='')
@@ -117,6 +157,5 @@ class Board():
         return output
 
 if __name__ == '__main__':
-    board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-    print(board)
-    board.display_bitboard(0)
+    test_board = Board()
+    test_board.destroy_piece(12)
