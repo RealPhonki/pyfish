@@ -10,6 +10,31 @@
 
 import numpy as np
 
+class Pieces:
+    """ Assigns piece names to the different bitboard indices """
+    WHITE_KING = 0
+    WHITE_QUEEN = 1
+    WHITE_ROOK = 2
+    WHITE_BISHOP = 3
+    WHITE_KNIGHT = 4
+    WHITE_PAWN = 5
+    BLACK_KING = 6
+    BLACK_QUEEN = 7
+    BLACK_ROOK = 8
+    BLACK_BISHOP = 9
+    BLACK_KNIGHT = 10
+    BLACK_PAWN = 11
+    
+    SYMBOL_FROM_INDEX = {
+        0: "K", 1: "Q", 2: "R", 3: "B", 4: "N", 5: "P",
+        6: "k", 7: "q", 8: "r", 9: "b", 10: "n", 11: "p"
+    }
+    
+    INDEX_FROM_SYMBOL = {
+        "K": 0, "Q": 1, "R": 2, "B": 3, "N":  4, "P":  5,
+        "k": 6, "q": 7, "r": 8, "b": 9, "n": 10, "p": 11
+    }
+
 class Board():
     """ The class represents a board state with bitboards
     - For all bitboards, LSB = A1 (aka Little-Endian Rank-File mapping)
@@ -31,10 +56,6 @@ class Board():
         Returns:
             list[np.uint64]: A list of 12 bitboards
         """
-        INDEX_FROM_SYMBOL = {
-            "K": 0, "Q": 1, "R": 2, "B": 3, "N":  4, "P":  5,
-            "k": 6, "q": 7, "r": 8, "b": 9, "n": 10, "p": 11
-        }
         
         # initilize an empty board
         bitboards = np.zeros(12, dtype=np.uint64)
@@ -51,7 +72,7 @@ class Board():
             elif symbol.isdigit(): # skip empty squares
                 column += int(symbol)
             else: # place the piece on the corresponding bitboard
-                piece_index = INDEX_FROM_SYMBOL[symbol]
+                piece_index = Pieces.INDEX_FROM_SYMBOL[symbol]
                 square_index = column + row * 8
                 bitboards[piece_index] = bitboards[piece_index] | 1 << square_index
                 column += 1
@@ -80,18 +101,13 @@ class Board():
         """
         output = ""
         
-        SYMBOL_FROM_INDEX = {
-            0: "K", 1: "Q", 2: "R", 3: "B", 4: "N", 5: "P",
-            6: "k", 7: "q", 8: "r", 9: "b", 10: "n", 11: "p"
-        }
-        
         for row in range(8):
             output += "\n+" + "---+"*8 + "\n"
             output += "| "
             for tile in range(7, -1, -1):
                 for bitboard_index in range(len(self.bitboards)):
                     if bin(self.bitboards[bitboard_index])[2:].rjust(64, '0')[row*8+tile] == '1':
-                        output += f'{SYMBOL_FROM_INDEX[bitboard_index]} | '
+                        output += f'{Pieces.SYMBOL_FROM_INDEX[bitboard_index]} | '
                         break
                 else:
                     output += '. | '
