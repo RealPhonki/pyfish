@@ -17,11 +17,49 @@ class ChessHandler:
         - 6 bits for the target square
     """
     @staticmethod
+    def load_from_fen(fen: str) -> list[np.uint64]:
+        """ Converts a FEN string into a list of bitboards
+
+        Args:
+            fen (str): A FEN string representing a board position
+
+        Returns:
+            list[np.uint64]: A list of 12 bitboards
+        """
+        # initilize an empty board
+        bitboards = np.zeros(12, dtype=np.uint64)
+        
+        # map FEN piece symbols to their corresponding bitboard index
+        INDEX_FROM_SYMBOL = {
+            "K": 0, "Q": 1, "R": 2, "B": 3, "N":  4, "P":  5,
+            "k": 6, "q": 7, "r": 8, "b": 9, "n": 10, "p": 11
+        }
+        
+        # parse the FEN string for the part that contains board data
+        fen_board = fen.split(' ')[0]
+        
+        column = 0
+        row = 7
+        for symbol in fen_board:
+            if symbol == '/': # move to the next row
+                column = 0
+                row -= 1
+            elif symbol.isdigit(): # skip empty squares
+                column += int(symbol)
+            else: # place the piece on the corresponding bitboard
+                piece_index = INDEX_FROM_SYMBOL[symbol]
+                square_index = column + row * 8
+                bitboards[piece_index] = bitboards[piece_index] | 1 << square_index
+                column += 1
+        
+        return bitboards
+    
+    @staticmethod
     def display_bitboard(bitboard: np.uint64) -> None:
         """ Displays the given bitboard to the CLI
 
         Args:
-            bitboard (np.uint64): the 64 bit board to display
+            bitboard (np.uint64): The 64 bit board to display
         """
         bitboard = bin(bitboard)[2:].rjust(64, '0')
         for row in range(8):
@@ -32,7 +70,7 @@ class ChessHandler:
         print('a b c d e f g h')
     
     @staticmethod
-    def display_board(board: list[np.uint64]) -> None:
+    def display_board(bitboards: list[np.uint64]) -> None:
         """ Displays the given board to the CLI
 
         Args:
@@ -47,8 +85,8 @@ class ChessHandler:
             print("\n+" + "---+"*8)
             print("| ", end='')
             for tile in range(7, -1, -1):
-                for bitboard_index in range(len(board)):
-                    if bin(board[bitboard_index])[2:].rjust(64, '0')[row*8+tile] == '1':
+                for bitboard_index in range(len(bitboards)):
+                    if bin(bitboards[bitboard_index])[2:].rjust(64, '0')[row*8+tile] == '1':
                         print(f'{SYMBOL_FROM_INDEX[bitboard_index]} | ', end='')
                         break
                 else:
@@ -58,20 +96,7 @@ class ChessHandler:
         print('  ' + '   '.join('abcdefgh'))
         
 if __name__ == '__main__':
-    test_board = np.array([
-        np.uint64(0x0000000000000010), #K
-        np.uint64(0x0000000000000008), #Q
-        np.uint64(0x0000000000000081), #R
-        np.uint64(0x0000000000000024), #B
-        np.uint64(0x0000000000000042), #N
-        np.uint64(0x000000000000FF00), #P
-        np.uint64(0x1000000000000000), #k
-        np.uint64(0x0800000000000008), #q
-        np.uint64(0x8100000000000081), #r
-        np.uint64(0x2400000000000024), #b
-        np.uint64(0x4200000000000042), #n
-        np.uint64(0x00FF000000000000)  #p
-    ], dtype=np.uint64)
-    
     chess_handler = ChessHandler()
-    chess_handler.display_board(test_board)
+    
+    board = chess_handler.load_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    chess_handler.display_board(board)
