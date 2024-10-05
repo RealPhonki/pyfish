@@ -23,7 +23,11 @@
 - The name "pyfish" is a play on the words "python" and "stockfish" (a popular chess engine).
 
 ## Implementations
-- The board states are represented with twelve unsigned 64-bit integers
+- Bitboards are using instead of an 8x8 array because operations can be performed significantly faster and in parallel.
+    - Destroying, adding, or getting pieces at specific indices can be done with a single bitwise operations when using
+      bitboards, however for an 8x8 array it would require a full scan of the array.
+    - Bitboards are around 10 to 100 times faster than 8x8 arrays.
+- The board states are represented with twelve unsigned 64-bit integers.
     - reference: https://www.chessprogramming.org/Bitboards
 - Moves are represented with 16 bit integers.
     - 4 bits for the 14 different types of moves (captures, en-passant, castling, ect)
