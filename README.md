@@ -27,10 +27,9 @@
     - reference: https://www.chessprogramming.org/Bitboards
 - Moves are represented with 16 bit integers.
     - 4 bits for the 14 different types of moves (captures, en-passant, castling, ect)
-    - 6 bits for the starting square (as a butterfly index)
-    - 6 bits for the target square (as a butterfly index)
+    - 6 bits for the starting square
+    - 6 bits for the target square
     - reference: https://www.chessprogramming.org/Encoding_Moves
-    - reference: https://www.chessprogramming.org/Butterfly_Boards
 
 ## References
 https://www.chessprogramming.org
