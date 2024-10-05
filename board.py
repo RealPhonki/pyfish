@@ -10,8 +10,6 @@
 
 import numpy as np
 
-from debug import *
-
 class Pieces:
     """ Assigns piece names to the different piece encodings (bitboard indices) """
     WHITE_KING = 0
@@ -49,9 +47,9 @@ class Board():
             self,
             fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
             ) -> None:
-        self.bitboards = self.load_from_fen(fen_string)
+        self.bitboards, self.turn, self.castling_rights = self.load_from_fen(fen_string)
     
-    def get_piece_at(self, butterfly_index: int) -> int:
+    def get(self, butterfly_index: int) -> int:
         """ Returns the piece encoding for a given butterfly index
         - reference: https://www.chessprogramming.org/Butterfly_Boards
 
@@ -62,11 +60,11 @@ class Board():
             int: The piece encoding
         """
         for index, bitboard in enumerate(self.bitboards):
-            if ((bitboard >> butterfly_index) & 1) != 0:
+            if ((bitboard >> np.uint64(butterfly_index)) & np.uint64(1)) != 0:
                 return index
         return None
     
-    def add_piece(self, butterfly_index: int, piece_encoding: int) -> None:
+    def place(self, butterfly_index: int, piece_encoding: int) -> None:
         """ Adds a piece at the given butterfly index to the specified bitboard
         - reference: https://www.chessprogramming.org/Butterfly_Boards
 
@@ -74,35 +72,39 @@ class Board():
             butterfly_index (int): The butterfly index
             piece_encoding (int): The piece encoding
         """
-        piece_location = np.uint64(1) << butterfly_index
-        self.bitboards[piece_encoding] = self.bitboards[piece_encoding] | piece_location
+        self.bitboards[piece_encoding] |= np.uint64(1) << np.uint64(butterfly_index)
     
-    def destroy_piece(self, butterfly_index: int) -> None:
+    def destroy(self, butterfly_index: int) -> None:
         """ Destroys a piece at a given butterfly index
         - reference: https://www.chessprogramming.org/Butterfly_Boards
 
         Args:
             butterfly_index (int): The butterfly index
         """
-        mask = ~np.uint64(1 << butterfly_index) & self.BITMASK64
+        mask = ~(np.uint64(1) << np.uint64(butterfly_index)) & self.BITMASK64
         self.bitboards = self.bitboards & mask
     
     @staticmethod
-    def load_from_fen(fen: str) -> list[np.uint64]:
+    def load_from_fen(fen: str) -> list[list[np.uint64], bool, int]:
         """ Converts a FEN string into a list of bitboards
 
         Args:
             fen (str): A FEN string representing a board position
 
         Returns:
-            list[np.uint64]: A list of 12 bitboards
+            bitboard: A list of 12 bitboards
+            turn: The current turn
+            castling_rights: The current castling rights
         """
         
         # initilize an empty board
         bitboards = np.zeros(12, dtype=np.uint64)
         
-        # parse the FEN string for the part that contains board data
+        # parse the FEN stringa
+        fen_data = fen.split(' ')
         fen_board = fen.split(' ')[0]
+        turn = True if fen_data[1] == "w" else False
+        castling_rights = int("".join(["1" if char != "-" else "0" for char in fen_data[2]]), 2)
         
         column = 0
         row = 7
@@ -118,9 +120,9 @@ class Board():
                 bitboards[piece_index] = bitboards[piece_index] | 1 << square_index
                 column += 1
         
-        return bitboards
+        return bitboards, turn, castling_rights
     
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """ Displays the given board to the CLI
 
         Args:
@@ -145,4 +147,5 @@ class Board():
 
 if __name__ == '__main__':
     test_board = Board()
-    test_board.destroy_piece(12)
+    test_board.destroy(12)
+    print(test_board)

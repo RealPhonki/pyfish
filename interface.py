@@ -25,7 +25,7 @@ def coordinate_to_butterfly(x: int, y: int) -> int:
         """
     return y * 8 + x
     
-def encode_uci(move: str) -> Move:
+def encode_uci(move: str, flags: int) -> Move:
     """ Converts UCI format to an encoded Move object
 
     Args:
@@ -37,18 +37,23 @@ def encode_uci(move: str) -> Move:
     LETTERS_TO_SYMBOLS = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
     initial_square = LETTERS_TO_SYMBOLS[move[0]] + 8 * (int(move[1]) - 1)
     target_square = LETTERS_TO_SYMBOLS[move[2]] + 8 * (int(move[3]) - 1)
-    return Move(0, initial_square, target_square)
+    return Move(flags, initial_square, target_square)
 
 def main():
     """ A basic interface for testing """
     chess_handler = ChessHandler()
-    board = Board()
+    board = Board("rnb1kb1r/pP2pppp/1q3n2/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 1 5")
     
     while True:
         os.system("clear")
         print(board)
         user_input = input("> ")
-        chess_handler.make_move(encode_uci(user_input), board)
+        flags = 0
+        if user_input == "f":
+            user_input = input("Flags: ")
+            flags = int(user_input)
+            user_input = input("> ")
+        board = chess_handler.make_move(encode_uci(user_input, flags), board)
     
 if __name__ == '__main__':
     main()
