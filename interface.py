@@ -13,15 +13,15 @@ from chess_handler import ChessHandler
 from board import Board
 from move import Move
 
-def coordinate_to_index(x: int, y: int) -> int:
-    """ Converts a coordinate to an index
+def coordinate_to_tile_index(x: int, y: int) -> int:
+    """ Converts a coordinate to a tile index
 
         Args:
             x (int): The x coordinate
             y (int): The y coordinate
 
         Returns:
-            int: The index (a number from 0 to 63)
+            int: The index of the tile (a number from 0 to 63)
         """
     return y * 8 + x
     

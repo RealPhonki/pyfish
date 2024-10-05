@@ -18,70 +18,90 @@ class Pieces:
     WHITE_BISHOP = 3
     WHITE_KNIGHT = 4
     WHITE_PAWN = 5
-    BLACK_KING = 6
-    BLACK_QUEEN = 7
-    BLACK_ROOK = 8
-    BLACK_BISHOP = 9
-    BLACK_KNIGHT = 10
-    BLACK_PAWN = 11
+    BLACK_KING = 9
+    BLACK_QUEEN = 10
+    BLACK_ROOK = 11
+    BLACK_BISHOP = 12
+    BLACK_KNIGHT = 13
+    BLACK_PAWN = 14
     
-    SYMBOL_FROM_INDEX = {
-        0: "K", 1: "Q", 2: "R", 3: "B", 4: "N", 5: "P",
-        6: "k", 7: "q", 8: "r", 9: "b", 10: "n", 11: "p"
+    DECODE = {
+        0: "K",  1: "Q",  2: "R",  3: "B",  4: "N",  5: "P",
+        9: "k", 10: "q", 11: "r", 12: "b", 13: "n", 14: "p"
     }
     
-    INDEX_FROM_SYMBOL = {
-        "K": 0, "Q": 1, "R": 2, "B": 3, "N":  4, "P":  5,
-        "k": 6, "q": 7, "r": 8, "b": 9, "n": 10, "p": 11
+    ENCODE = {
+        "K": 0, "Q":  1, "R":  2, "B":  3, "N":  4, "P":  5,
+        "k": 9, "q": 10, "r": 11, "b": 12, "n": 13, "p": 14
     }
 
-class Board():
+class Board(np.ndarray):
     """ The class represents a board state with bitboards
     - For all bitboards, LSB = A1 (aka Little-Endian Rank-File mapping)
         reference: https://www.chessprogramming.org/Square_Mapping_Considerations
-    - The bitboards attribute is a numpy array of 12 unsigned 64-bit integers which
-      represents the board state
+    - This object is a numpy array of 12 unsigned 64-bit integers which represent
+      the board state
     """
     
     BITMASK64 = np.uint64((1 << 64) - 1)
     
-    def __init__(
-            self,
-            fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-            ) -> None:
-        self.bitboards, self.turn, self.castling_rights = self.load_from_fen(fen_string)
+    def __new__(cls, fen_string="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") -> None:
+        data, cls.turn, cls.castling_rights = cls.load_from_fen(fen_string)
+        obj = np.asarray(data, dtype=np.uint64).view(cls)
+        return obj
     
-    def get(self, index: int) -> int:
+    def __repr__(self) -> str:
+        """ Displays the board state """
+        output = ""
+        
+        for row in range(8):
+            output += "\n+" + "---+"*8 + "\n"
+            output += "| "
+            for tile in range(7, -1, -1):
+                for bitboard_index in range(len(self)):
+                    if bin(self[bitboard_index])[2:].rjust(64, '0')[row*8+tile] == '1':
+                        output += f'{Pieces.DECODE[bitboard_index]} | '
+                        break
+                else:
+                    output += '. | '
+            output += f' {8-row}'
+        output += "\n+" + "---+"*8 + "\n"
+        output += '  ' + '   '.join('abcdefgh') + "\n"
+        return output
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def get(self, tile_index: int) -> int:
         """ Returns the piece encoding for a given index
 
         Args:
-            index (int): The index
+            tile_index (int): The index of the tile
 
         Returns:
             int: The piece encoding
         """
-        for index, bitboard in enumerate(self.bitboards):
-            if ((bitboard >> np.uint64(index)) & np.uint64(1)) != 0:
+        for index, bitboard in enumerate(self):
+            if ((bitboard >> np.uint64(tile_index)) & 1) != 0:
                 return index
         return None
     
-    def place(self, index: int, piece_encoding: int) -> None:
+    def place(self, tile_index: int, piece_encoding: int) -> None:
         """ Adds a piece at the given index to the specified bitboard
 
         Args:
-            index (int): The index
+            tile_index (int): The index of the tile
             piece_encoding (int): The piece encoding
         """
-        self.bitboards[piece_encoding] |= np.uint64(1) << np.uint64(index)
+        self[piece_encoding] |= np.uint64(1) << np.uint64(tile_index)
     
-    def destroy(self, index: int) -> None:
+    def destroy(self, tile_index: int) -> None:
         """ Destroys a piece at a given index
 
         Args:
-            index (int): The index
+            tile_index (int): The index of the tile
         """
-        mask = ~(np.uint64(1) << np.uint64(index)) & self.BITMASK64
-        self.bitboards = self.bitboards & mask
+        self &= ~(np.uint64(1) << np.uint64(tile_index)) & self.BITMASK64
     
     @staticmethod
     def load_from_fen(fen: str) -> list[list[np.uint64], bool, int]:
@@ -97,9 +117,9 @@ class Board():
         """
         
         # initilize an empty board
-        bitboards = np.zeros(12, dtype=np.uint64)
+        bitboards = np.zeros(16, dtype=np.uint64)
         
-        # parse the FEN stringa
+        # parse the FEN string
         fen_data = fen.split(' ')
         fen_board = fen.split(' ')[0]
         turn = True if fen_data[1] == "w" else False
@@ -107,44 +127,21 @@ class Board():
         
         column = 0
         row = 7
-        for symbol in fen_board:
-            if symbol == '/': # move to the next row
+        for character in fen_board:
+            if character == '/': # move to the next row
                 column = 0
                 row -= 1
-            elif symbol.isdigit(): # skip empty squares
-                column += int(symbol)
+            elif character.isdigit(): # skip empty squares
+                column += int(character)
             else: # place the piece on the corresponding bitboard
-                piece_index = Pieces.INDEX_FROM_SYMBOL[symbol]
+                piece_index = Pieces.ENCODE[character]
                 square_index = column + row * 8
-                bitboards[piece_index] = bitboards[piece_index] | 1 << square_index
+                bitboards[piece_index] |= 1 << square_index
                 column += 1
         
         return bitboards, turn, castling_rights
-    
-    def __repr__(self) -> str:
-        """ Displays the given board to the CLI
-
-        Args:
-            board (list[np.uint64]): A list of bitboards
-        """
-        output = ""
-        
-        for row in range(8):
-            output += "\n+" + "---+"*8 + "\n"
-            output += "| "
-            for tile in range(7, -1, -1):
-                for bitboard_index in range(len(self.bitboards)):
-                    if bin(self.bitboards[bitboard_index])[2:].rjust(64, '0')[row*8+tile] == '1':
-                        output += f'{Pieces.SYMBOL_FROM_INDEX[bitboard_index]} | '
-                        break
-                else:
-                    output += '. | '
-            output += f' {8-row}'
-        output += "\n+" + "---+"*8 + "\n"
-        output += '  ' + '   '.join('abcdefgh') + "\n"
-        return output
 
 if __name__ == '__main__':
     test_board = Board()
-    test_board.destroy(12)
+    test_board.destroy(2**8)
     print(test_board)
