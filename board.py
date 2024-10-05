@@ -39,6 +39,8 @@ class Board():
     """ The class represents a board state with bitboards
     - For all bitboards, LSB = A1 (aka Little-Endian Rank-File mapping)
         reference: https://www.chessprogramming.org/Square_Mapping_Considerations
+    - The bitboards attribute is a numpy array of 12 unsigned 64-bit integers which
+      represents the board state
     """
     
     BITMASK64 = np.uint64((1 << 64) - 1)
@@ -49,39 +51,36 @@ class Board():
             ) -> None:
         self.bitboards, self.turn, self.castling_rights = self.load_from_fen(fen_string)
     
-    def get(self, butterfly_index: int) -> int:
-        """ Returns the piece encoding for a given butterfly index
-        - reference: https://www.chessprogramming.org/Butterfly_Boards
+    def get(self, index: int) -> int:
+        """ Returns the piece encoding for a given index
 
         Args:
-            butterfly_index (int): The butterfly index
+            index (int): The index
 
         Returns:
             int: The piece encoding
         """
         for index, bitboard in enumerate(self.bitboards):
-            if ((bitboard >> np.uint64(butterfly_index)) & np.uint64(1)) != 0:
+            if ((bitboard >> np.uint64(index)) & np.uint64(1)) != 0:
                 return index
         return None
     
-    def place(self, butterfly_index: int, piece_encoding: int) -> None:
-        """ Adds a piece at the given butterfly index to the specified bitboard
-        - reference: https://www.chessprogramming.org/Butterfly_Boards
+    def place(self, index: int, piece_encoding: int) -> None:
+        """ Adds a piece at the given index to the specified bitboard
 
         Args:
-            butterfly_index (int): The butterfly index
+            index (int): The index
             piece_encoding (int): The piece encoding
         """
-        self.bitboards[piece_encoding] |= np.uint64(1) << np.uint64(butterfly_index)
+        self.bitboards[piece_encoding] |= np.uint64(1) << np.uint64(index)
     
-    def destroy(self, butterfly_index: int) -> None:
-        """ Destroys a piece at a given butterfly index
-        - reference: https://www.chessprogramming.org/Butterfly_Boards
+    def destroy(self, index: int) -> None:
+        """ Destroys a piece at a given index
 
         Args:
-            butterfly_index (int): The butterfly index
+            index (int): The index
         """
-        mask = ~(np.uint64(1) << np.uint64(butterfly_index)) & self.BITMASK64
+        mask = ~(np.uint64(1) << np.uint64(index)) & self.BITMASK64
         self.bitboards = self.bitboards & mask
     
     @staticmethod
