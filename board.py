@@ -8,46 +8,46 @@
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 
+from typing import Self, overload, NewType
+
 import numpy as np
 
-class Pieces:
-    """ Assigns piece names to the different piece encodings (bitboard indices) """
-    WHITE_KING = 0
-    WHITE_QUEEN = 1
-    WHITE_ROOK = 2
-    WHITE_BISHOP = 3
-    WHITE_KNIGHT = 4
-    WHITE_PAWN = 5
-    BLACK_KING = 9
-    BLACK_QUEEN = 10
-    BLACK_ROOK = 11
-    BLACK_BISHOP = 12
-    BLACK_KNIGHT = 13
-    BLACK_PAWN = 14
-    
-    DECODE = {
-        0: "K",  1: "Q",  2: "R",  3: "B",  4: "N",  5: "P",
-        9: "k", 10: "q", 11: "r", 12: "b", 13: "n", 14: "p"
-    }
-    
-    ENCODE = {
-        "K": 0, "Q":  1, "R":  2, "B":  3, "N":  4, "P":  5,
-        "k": 9, "q": 10, "r": 11, "b": 12, "n": 13, "p": 14
-    }
+from move import Move
+from pieces import Pieces
+
+FenString = NewType("FenString", str)
+Bitboards = NewType("Bitboards", np.ndarray)
+Turn = NewType("Turn", bool)
+CastlingRights = NewType("CastlingRights", int)
 
 class Board(np.ndarray):
-    """ The class represents a board state with bitboards
-    - For all bitboards, LSB = A1 (aka Little-Endian Rank-File mapping)
-        reference: https://www.chessprogramming.org/Square_Mapping_Considerations
-    - This object is a numpy array of 12 unsigned 64-bit integers which represent
-      the board state
     """
+    Args:
+        data (str, optional): Must be a fen string
+        data (list, optional):
+            - board (np.ndarray): The board state in bitboard format
+            - turn (bool): True for white, False for black
+            - castling_rights (int): The castling rights represented as a 4 bit integer
     
-    BITMASK64 = np.uint64((1 << 64) - 1)
+    - The class represents a board state with bitboards
+    - For all bitboards, LSB = A1 (Little-Endian Rank-File mapping)
+        - reference: https://www.chessprogramming.org/Square_Mapping_Considerations
+    - This object is a numpy array of 12 unsigned 64-bit integers which represents
+      the board state
+    - This object is immutable
+    """
+    @overload
+    def __new__(cls, data = None | FenString | list[Bitboards, Turn, CastlingRights]) -> Self: ...
     
-    def __new__(cls, fen_string="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") -> None:
-        data, cls.turn, cls.castling_rights = cls.load_from_fen(fen_string)
-        obj = np.asarray(data, dtype=np.uint64).view(cls)
+    def __new__(cls, data="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") -> Self:
+        if isinstance(data, str):
+            bitboards, cls.turn, cls.castling_rights = cls.load_from_fen(data)
+        elif isinstance(data, (list, tuple)) and len(data) == 3:
+            bitboards, cls.turn, cls.castling_rights = data
+        else:
+            raise ValueError("Invalid data format")
+    
+        obj = np.asarray(bitboards, dtype=np.uint64).view(cls)
         return obj
     
     def __repr__(self) -> str:
@@ -66,43 +66,26 @@ class Board(np.ndarray):
                     output += '. | '
             output += f' {8-row}'
         output += "\n+" + "---+"*8 + "\n"
-        output += '  ' + '   '.join('abcdefgh') + "\n"
+        output += '  ' + '   '.join('abcdefgh')
         return output
 
     def __str__(self) -> str:
         return self.__repr__()
-
-    def get(self, tile_index: int) -> int:
-        """ Returns the piece encoding for a given index
+    
+    def __setattr__(self, name, value) -> AttributeError:
+        """ Make the object immutable
 
         Args:
-            tile_index (int): The index of the tile
+            name (_type_): The name of the attribute
+            value (_type_): The value of the attribute
 
-        Returns:
-            int: The piece encoding
+        Raises:
+            AttributeError: The error since the object is immutable
         """
-        for index, bitboard in enumerate(self):
-            if ((bitboard >> np.uint64(tile_index)) & 1) != 0:
-                return index
-        return None
-    
-    def place(self, tile_index: int, piece_encoding: int) -> None:
-        """ Adds a piece at the given index to the specified bitboard
+        if hasattr(self, name):
+            raise AttributeError(f"Cannot modify attribute '{name}'")
+        super().__setattr__(name, value)
 
-        Args:
-            tile_index (int): The index of the tile
-            piece_encoding (int): The piece encoding
-        """
-        self[piece_encoding] |= np.uint64(1) << np.uint64(tile_index)
-    
-    def destroy(self, tile_index: int) -> None:
-        """ Destroys a piece at a given index
-
-        Args:
-            tile_index (int): The index of the tile
-        """
-        self &= ~(np.uint64(1) << np.uint64(tile_index)) & self.BITMASK64
-    
     @staticmethod
     def load_from_fen(fen: str) -> list[list[np.uint64], bool, int]:
         """ Converts a FEN string into a list of bitboards
@@ -141,7 +124,170 @@ class Board(np.ndarray):
         
         return bitboards, turn, castling_rights
 
-if __name__ == '__main__':
-    test_board = Board()
-    test_board.destroy(2**8)
-    print(test_board)
+    def display_bitboard(self, piece: int | str) -> None:
+        """ Displays the given bitboard to the CLI
+        Args:
+            bitboard (np.uint64): The 64 bit board to display
+        """
+        if isinstance(piece, str):
+            piece = Pieces.ENCODE[piece]
+        bitboard = bin(self[piece])[2:].rjust(64, '0')
+        for row in range(8):
+            for tile in range(7, -1, -1):
+                print(f'{bitboard[row*8+tile]} ', end='')
+            print(f'| {8-row}')
+        print('----------------+')
+        print('a b c d e f g h')
+
+    def get(self, tile_index: int) -> int:
+        """ Returns the piece encoding for a given index
+
+        Args:
+            tile_index (int): The index of the tile
+
+        Returns:
+            int: The piece encoding
+        """
+        for index, bitboard in enumerate(self):
+            if ((bitboard >> np.uint64(tile_index)) & 1) != 0:
+                return index
+        return None
+    
+    def place(self, tile_index: int, piece_encoding: int) -> None:
+        """ Adds a piece at the given index to the specified bitboard
+
+        Args:
+            tile_index (int): The index of the tile
+            piece_encoding (int): The piece encoding
+        """
+        self[piece_encoding] |= np.uint64(1) << np.uint64(tile_index)
+    
+    def destroy(self, tile_index: int) -> None:
+        """ Destroys a piece at a given index
+
+        Args:
+            tile_index (int): The index of the tile
+        """
+        self &= ~(np.uint64(1) << np.uint64(tile_index))
+
+    def quiet(self, move: Move) -> Self:
+        """ Performs a quiet move
+
+        Returns:
+            Self: A copy of the board with the quiet move applied
+        """
+        new_board = Board((self, self.turn, self.castling_rights))
+        piece = new_board.get(move.initial_square)
+        new_board.destroy(move.initial_square)
+        new_board.place(move.target_square, piece)
+        return new_board
+
+    def short_castle(self) -> Self:
+        """ Performs a short-castle
+
+        Returns:
+            Self: A copy of the board with the short-castle applied
+        """
+        # choose side and color
+        row = 0 if self.turn else 7
+        color = Pieces.WHITE if self.turn else Pieces.BLACK
+        
+        new_board = Board((self, self.turn, self.castling_rights))
+        new_board &= ~np.uint64(15 << (4 + row*8))
+        new_board[color | Pieces.ROOK] |= np.uint64(1 << (5 + row*8))
+        new_board[color | Pieces.KING]  = np.uint64(1 << (6 + row*8))
+        return new_board
+    
+    def long_castle(self) -> Self:
+        """ Performs a long-castle
+
+        Returns:
+            Self: A copy of the board with the long-castle applied
+        """
+        row = 0 if self.turn else 7
+        color = Pieces.WHITE if self.turn else Pieces.black
+        
+        new_board = Board((self, self.turn, self.castling_rights))
+        new_board &= ~np.uint64(15 << (row*8))
+        new_board[color | Pieces.KING] = np.uint64(1 << (2 + row*8))
+        new_board[color | Pieces.ROOK] |= np.uint64(1 << (3 + row*8))
+        return new_board
+    
+    def capture(self, move: Move) -> Self:
+        """ Performs a capture move
+
+        Returns:
+            Self: A copy of the board with the capture move applied
+        """
+        new_board = Board((self, self.turn, self.castling_rights))
+        piece = new_board.get(move.initial_square)
+        new_board.destroy(move.initial_square)
+        new_board.destroy(move.target_square)
+        new_board.place(move.target_square, piece)
+        return new_board
+    
+    def en_passant(self, move: Move) -> Self:
+        """ Performs an en passant capture
+
+        Returns:
+            Self: A copy of the board with the en passant capture applied
+        """
+        new_board = Board((self, self.turn, self.castling_rights))
+        piece = new_board.get(move.initial_square)
+        new_board.destroy(move.initial_square)
+        new_board.destroy(move.target_square - 8)
+        new_board.place(move.target_square, piece)
+        return new_board
+    
+    def promotion(self, move: Move) -> Self:
+        """ Performs a promotion move
+
+        Returns:
+            Self: A copy of the board with the promotion move applied
+        """
+        color = Pieces.WHITE if self.turn else Pieces.BLACK
+        piece = [Pieces.KNIGHT, Pieces.BISHOP, Pieces.ROOK, Pieces.QUEEN][move.flags & 3]
+        
+        new_board = Board((self, self.turn, self.castling_rights))
+        new_board.destroy(move.initial_square)
+        new_board.place(move.target_square, color | piece)
+        return new_board
+    
+    def promotion_capture(self, move: Move) -> Self:
+        """ Performs a promotion-capture move
+
+        Returns:
+            Self: A copy of the board with the promotion move applied
+        """
+        color = Pieces.WHITE if self.turn else Pieces.BLACK
+        piece = [Pieces.KNIGHT, Pieces.BISHOP, Pieces.ROOK, Pieces.QUEEN][move.flags & 3]
+        
+        new_board = Board((self, self.turn, self.castling_rights))
+        new_board.destroy(move.initial_square)
+        new_board.destroy(move.target_square)
+        new_board.place(move.target_square, color | piece)
+        return new_board
+    
+    def make_move(self, move: Move) -> Self:
+        """ Plays a given move
+
+        Args:
+            move (Move): the move to play
+
+        Returns:
+            Self: A copy of the board with the move applied
+        """
+        if move.is_quiet or move.is_double_pawn_push:
+            return self.quiet(move)
+        elif move.is_short_castle:
+            return self.short_castle()
+        elif move.is_long_castle:
+            return self.long_castle()
+        elif move.is_en_passant:
+            return self.en_passant(move)
+        elif move.is_promotion:
+            return self.promotion(move)
+        elif move.is_capture:
+            return self.capture(move)
+        else:
+            raise ValueError(f"Invalid move data: {move}")

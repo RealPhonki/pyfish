@@ -8,23 +8,12 @@
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 
+# this file is a temporary interface for the chess program
+
 import os
-from chess_handler import ChessHandler
 from board import Board
 from move import Move
 
-def coordinate_to_tile_index(x: int, y: int) -> int:
-    """ Converts a coordinate to a tile index
-
-        Args:
-            x (int): The x coordinate
-            y (int): The y coordinate
-
-        Returns:
-            int: The index of the tile (a number from 0 to 63)
-        """
-    return y * 8 + x
-    
 def encode_uci(move: str, flags: int) -> Move:
     """ Converts UCI format to an encoded Move object
 
@@ -41,19 +30,30 @@ def encode_uci(move: str, flags: int) -> Move:
 
 def main():
     """ A basic interface for testing """
-    chess_handler = ChessHandler()
-    board = Board("rnb1kb1r/pP2pppp/1q3n2/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 1 5")
+    board = Board()
     
     while True:
         os.system("clear")
         print(board)
-        user_input = input("> ")
-        flags = 0
-        if user_input == "f":
-            user_input = input("Flags: ")
-            flags = int(user_input)
-            user_input = input("> ")
-        board = chess_handler.make_move(encode_uci(user_input, flags), board)
+        print("-" * 33)
+        print("0  | Quiet  Move")
+        print("1  | Double Pawn Push")
+        print("2  | Short Castle")
+        print("3  | Long Castle")
+        print("4  | Capture")
+        print("5  | En Passant")
+        print("8  | Knight Promotion")
+        print("7  | Bishop Promotion")
+        print("9  | Rook Promotion")
+        print("10 | Queen Promotion")
+        print("11 | Knight Promotion Capture")
+        print("12 | Bishop Promotion Capture")
+        print("13 | Rook Promotion Capture")
+        print("14 | Queen Promotion Capture")
+        print("-" * 33)
+        flags = int(input("Flags > "))
+        move = encode_uci(input("Move > "), flags)
+        board = board.make_move(move)
     
 if __name__ == '__main__':
     main()

@@ -10,14 +10,16 @@
 # pylint: disable=expression-not-assigned
 # pylint: disable=missing-function-docstring
 
+from typing import overload
+
 import numpy as np
 
 class Flags:
     """ Assigns names to the different encodings for move types """
     QUIET                  = 0b0000
     DOUBLE_PAWN_PUSH       = 0b0001
-    KING_CASTLE            = 0b0010
-    QUEEN_CASTLE           = 0b0011
+    SHORT_CASTLE           = 0b0010
+    LONG_CASTLE            = 0b0011
     CAPTURE                = 0b0100
     EN_PASSANT             = 0b0101
     KNIGHT_PROMOTE         = 0b1000
@@ -36,6 +38,10 @@ class Move(np.uint16):
     - 6 bits for the target square
     reference: https://www.chessprogramming.org/Encoding_Moves
     """
+    
+    @overload
+    def __new__(cls, flags: int, initial_square: int, target_square: int) -> None: ...
+    
     def __new__(cls, flags: int, initial_square: int, target_square: int) -> None:
         value = ((flags & 0xf)<<12) | ((initial_square & 0x3f)<<6) | (target_square & 0x3f)
         return np.uint16.__new__(cls, value)
@@ -61,11 +67,11 @@ class Move(np.uint16):
         return self.flags == Flags.DOUBLE_PAWN_PUSH
     
     @property
-    def is_king_castle(self) -> bool:
+    def is_short_castle(self) -> bool:
         return self.flags == Flags.KING_CASTLE
     
     @property
-    def is_queen_castle(self) -> bool:
+    def is_long_castle(self) -> bool:
         return self.flags == Flags.QUEEN_CASTLE
     
     @property
@@ -79,15 +85,3 @@ class Move(np.uint16):
     @property
     def is_promotion(self) -> bool:
         return (self.flags >> 3) != 0
-
-if __name__ == '__main__':
-    moves: list[Move] = [(flag, Move(flag, 12, 61)) for flag in range(16) if flag not in [6, 7]]
-    
-    # flag testing
-    #print(*[flag for flag, move in moves if move.is_quiet])
-    #print(*[flag for flag, move in moves if move.is_double_pawn_push])
-    #print(*[flag for flag, move in moves if move.is_king_castle])
-    #print(*[flag for flag, move in moves if move.is_queen_castle])
-    #print(*[flag for flag, move in moves if move.is_capture])
-    #print(*[flag for flag, move in moves if move.is_en_passant])
-    #print(*[flag for flag, move in moves if move.is_promotion])
