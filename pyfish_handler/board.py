@@ -12,8 +12,8 @@ from typing import Self, overload, NewType
 
 import numpy as np
 
-from move import Move
-from pieces import Pieces
+from pyfish_handler.move import Move
+from pyfish_handler.pieces import Pieces
 
 FenString = NewType("FenString", str)
 Bitboards = NewType("Bitboards", np.ndarray)

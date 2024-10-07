@@ -11,10 +11,9 @@
 # this file is a temporary interface for the chess program
 
 import os
-from board import Board
-from move import Move
+import pyfish_handler as pf
 
-def encode_uci(move: str, flags: int) -> Move:
+def encode_uci(move: str, flags: int) -> pf.Move:
     """ Converts UCI format to an encoded Move object
 
     Args:
@@ -26,11 +25,11 @@ def encode_uci(move: str, flags: int) -> Move:
     LETTERS_TO_SYMBOLS = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
     initial_square = LETTERS_TO_SYMBOLS[move[0]] + 8 * (int(move[1]) - 1)
     target_square = LETTERS_TO_SYMBOLS[move[2]] + 8 * (int(move[3]) - 1)
-    return Move(flags, initial_square, target_square)
+    return pf.Move(flags, initial_square, target_square)
 
 def main():
     """ A basic interface for testing """
-    board = Board()
+    board = pf.Board()
     
     while True:
         os.system("clear")
