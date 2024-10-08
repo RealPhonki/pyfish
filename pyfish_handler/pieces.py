@@ -20,6 +20,10 @@ class Pieces:
     BISHOP = 3
     KNIGHT = 4
     PAWN = 5
+    OCCUPIED = 6
+    EMPTY = 7
+    ALL_WHITE = 14
+    ALL_BLACK = 15
     WHITE = 0
     BLACK = 8
     

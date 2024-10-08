@@ -7,8 +7,10 @@
 # pylint: disable=consider-using-enumerate
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
+# pylint: disable=import-error
 
-# this file is a temporary interface for the chess program
+# TODO: fix all this shit
+# this file is a temporary disabled
 
 import os
 import pyfish_handler as pf

@@ -10,8 +10,10 @@
 # pylint: disable=expression-not-assigned
 # pylint: disable=missing-function-docstring
 
+# standard
 from typing import overload
 
+# third party
 import numpy as np
 
 class Flags:
