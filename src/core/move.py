@@ -64,6 +64,9 @@ class Move(np.uint16):
     def __repr__(self) -> str:
         return f"Move({self.flags}, {self.initial_square}, {self.target_square})"
     
+    def __str__(self) -> str:
+        return self.__repr__()
+    
     @property
     def flags(self) -> int:
         return (self >> 12) & 0xf

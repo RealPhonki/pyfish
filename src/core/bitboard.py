@@ -19,6 +19,9 @@ class Bitboard(np.uint64):
         return np.uint64.__new__(cls, value)
     
     def __repr__(self) -> str:
+        return f"Bitboard({int(self)})"
+    
+    def __str__(self) -> str:
         output = ""
         bitboard = bin(self)[2:].rjust(64, '0')
         for row in range(8):
@@ -28,9 +31,6 @@ class Bitboard(np.uint64):
         output += '----------------+\n'
         output += 'a b c d e f g h\n'
         return output
-    
-    def __str__(self) -> str:
-        return self.__repr__()
     
     def __or__(self, other: int) -> Self:
         return Bitboard(super() | other)
