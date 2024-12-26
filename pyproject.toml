@@ -1,0 +1,13 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfish"
+version = "0.1.0"
+description = "A chess library for creating bots"
+dependencies = []
+
+[tool.setuptools]
+packages = ["src"]
