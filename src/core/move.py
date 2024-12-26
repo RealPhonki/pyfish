@@ -47,19 +47,19 @@ class Move(np.uint16):
     
     def __new__(cls, flags: UInt4, initial_square: UInt6, target_square: UInt6) -> Self:
         # ensure safe types
-        if not 0 <= flags <= 0xF:
-            error_message = f"Flags must be a 4-bit integer (0-15), got {flags}"
-            raise InvalidMoveError(error_message)
-        if not 0 <= initial_square <= 0x3F:
-            error_message = f"Initial square must be a 6-bit integer (0-63), got {initial_square}"
-            raise InvalidMoveError(error_message)
-        if not 0 <= target_square <= 0x3F:
-            error_message = f"Target square must be a 6-bit integer (0-63), got {target_square}"
-            raise InvalidMoveError(error_message)
+        cls._validate(flags, 0xF, "Flags")
+        cls._validate(initial_square, 0x3F, "Initial square")
+        cls._validate(target_square, 0x3F, "Target square")
         
         # initialize
         value = ((flags & 0xf)<<12) | ((initial_square & 0x3f)<<6) | (target_square & 0x3f)
         return np.uint16.__new__(cls, value)
+    
+    @classmethod
+    def _validate(cls, value: int, max_value: int, name: str):
+        if not (isinstance(value, int) and 0 <= value <= max_value):
+            error = f"{name} must be an integer between 0 and {max_value}, got '{value}'"
+            raise InvalidMoveError(error)
     
     def __repr__(self) -> str:
         return f"Move({self.flags}, {self.initial_square}, {self.target_square})"
@@ -106,3 +106,6 @@ class Move(np.uint16):
     @property
     def is_promotion(self) -> bool:
         return (self.flags >> 3) != 0
+
+if __name__ == '__main__':
+    test_move = Move("potato", 2, 4)
