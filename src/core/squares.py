@@ -141,4 +141,4 @@ MASK_E8: Bitboard = Bitboard(1 << E8)
 MASK_F8: Bitboard = Bitboard(1 << F8)
 MASK_G8: Bitboard = Bitboard(1 << G8)
 MASK_H8: Bitboard = Bitboard(1 << H8)
-MASK: List[Bitboard] = [Bitboard(1 << square) for square in SQUARES]
+BB_MASK: List[Bitboard] = [Bitboard(1 << square) for square in SQUARES]

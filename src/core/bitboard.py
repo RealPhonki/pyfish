@@ -38,6 +38,12 @@ class Bitboard(np.uint64):
     def __and__(self, other: int) -> Self:
         return Bitboard(super() & other)
     
+    def __xor__(self, other: int) -> Self:
+        return Bitboard(super() ^ other)
+    
+    def __invert__(self) -> Self:
+        return Bitboard(super().__invert__())
+    
     def get_bit(self, square: int) -> int:
         """ Returns the bit value at a given square
 

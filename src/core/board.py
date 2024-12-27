@@ -6,101 +6,44 @@
 # pylint: disable=missing-function-docstring
 
 # standard
-from typing import Tuple, TypeAlias, Self
+from typing import TypeAlias, Tuple, Self
 from dataclasses import dataclass
 
+# third party
+import numpy as np
+
 # project
+from src.core.castling_rights import CastlingRights
 from src.core.bitboard import Bitboard
 from src.core.piece import Piece
-from src.core import squares
+from src.core.squares import BB_MASK
 
-UInt4: TypeAlias = int
+Board: TypeAlias = Tuple[np.ndarray[Bitboard], bool, CastlingRights]
 
 class InvalidFENError(Exception):
     """ Represents an invalid fen string input. """
 
-class CastlingRights(UInt4):
-    """ Represents the castling rights for a player with a 4 bit integer.
-    The bits represent the following information
-    - Bit 0: King-side castling for white
-    - Bit 1: Queen-side castling for white
-    - Bit 2: King-side castling for black
-    - Bit 3: Queen-side castling for black
-    """
-    
-    MASKS = {
-        "K": 0b1000,
-        "Q": 0b0100,
-        "k": 0b0010,
-        "q": 0b0001
-    }
-    
-    def __new__(cls, value: int) -> None:
-        cls._validate(value)
-        return super().__new__(cls, value)
-
-    @classmethod
-    def _validate(cls, value: int):
-        if not (isinstance(value, int) and 0 <= value <= 15):
-            error = f"Castling rights must be an integer between 0 and 15, got '{value}'"
-            raise ValueError(error)
-        
-    def __repr__(self) -> str:
-        return f"CastlingRights({self.__str__()})"
-        
-    def __str__(self) -> str:
-        text = ""
-        for symbol, mask in self.MASKS.items():
-            if self & mask != 0:
-                text += symbol
-        if text == "":
-            text = "-"
-        return text
-    
-    @classmethod
-    def from_text(cls, text: str) -> Self:
-        if text == "-":
-            return cls(0)
-        out = 0
-        for symbol, mask in cls.MASKS.items():
-            if symbol in text:
-                out |= mask
-        return cls(out)
-        
-    @property
-    def white_king_side(self) -> bool:
-        return self & 0x1
-    
-    @property
-    def white_queen_side(self) -> bool:
-        return self & 0x2
-    
-    @property
-    def black_king_side(self) -> bool:
-        return self & 0x4
-    
-    @property
-    def black_queen_side(self) -> bool:
-        return self & 0x8
-
-@dataclass(frozen=True)
+@dataclass
 class Board:
-    """ Represents a board state using bitboards.
-    A bitboard is a 64-bit unsigned integer where each bit represents a piece location. There
-    are 12 bitboards, where each bitboard contains the locations of their respective pieces.
-    
-    The turn is represented by a boolean. True indicates white to play, False indicates
-    black to play.
-    
-    The castling rights are represented by a 4-bit integer where each bit represents a castling
-    right. The bits following this format KQkq
     """
+    Contains methods for generating, handling, and displaying bitboards.
     
-    bitboards: Tuple[Bitboard, ...]
+    The bitboards attribute is a fixed array of 12 64-bit unsigned integers. Each integer
+    represents the locations of pieces on the board.
+    
+    The turn attribute is a boolean where True indicates white-to-play and False indicates
+    black-to-play.
+    
+    The castling_rights attribute is a 4-bit integer where each bit represents a castling right.
+    """
+    bitboards: np.ndarray[Bitboard]
     turn: bool
-    castling_rights: UInt4
+    castling_rights: CastlingRights
     
     def __repr__(self) -> str:
+        return f"Board(..., {self.turn}, {self.castling_rights})"
+    
+    def __str__(self) -> str:
         output = ""
         for row in range(7, -1, -1):
             output += "\n+" + "---+"*8 + "\n"
@@ -113,17 +56,15 @@ class Board:
                         break
                 else:
                     output += '  | '
+            output += str(row + 1)
         
         output += "\n+" + "---+"*8 + "\n"
         output += '  ' + '   '.join('abcdefgh')
         return output
     
-    def __str__(self) -> str:
-        return self.__repr__()
-    
     @classmethod
     def from_fen(cls, fen: str="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") -> Self:
-        """ Generates a board object from a fen string
+        """ Generates bitboard data from a fen string
 
         Args:
             fen (str, optional): The position of the board in fen notation.
@@ -155,7 +96,24 @@ class Board:
             else: # place the piece on the corresponding bitboard
                 piece_type = Piece.SYMBOL.index(character)
                 square = column + row * 8
-                bitboards[piece_type] |= squares.MASK[square]
+                bitboards[piece_type] |= BB_MASK[square]
                 column += 1
         
         return cls(bitboards, turn, castling_rights)
+    
+    def get_piece(self, square: int) -> int:
+        """ Returns the piece that is at a given square
+
+        Args:
+            square (int): The square to check
+
+        Returns:
+            int: The piece type (the index of which bitboard contains the piece)
+        """
+        for piece_type, bitboard in enumerate(self.bitboards):
+            if bitboard.get_bit(square):
+                return piece_type
+        return None
+    
+    def copy(self) -> Self:
+        return Board(self.bitboards.copy(), self.turn, self.castling_rights)

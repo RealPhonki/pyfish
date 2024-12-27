@@ -106,6 +106,3 @@ class Move(np.uint16):
     @property
     def is_promotion(self) -> bool:
         return (self.flags >> 3) != 0
-
-if __name__ == '__main__':
-    test_move = Move("potato", 2, 4)
