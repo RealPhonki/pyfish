@@ -1,0 +1,6 @@
+iniconfig==2.0.0
+numpy==2.2.1
+packaging==24.2
+pluggy==1.5.0
+-e git+https://github.com/RealPhonki/pyfish.git@17255bbd1295262d8397ffb2fc67b33b5fc3533a#egg=pyfish
+pytest==8.3.4
