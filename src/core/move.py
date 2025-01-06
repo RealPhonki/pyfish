@@ -6,7 +6,7 @@
 # pylint: disable=import-error
 
 # standard
-from typing import TypeAlias, Self
+from typing import TypeAlias, Self, overload
 
 # third party
 import numpy as np
@@ -44,6 +44,8 @@ class Move(np.uint16):
     
     reference: https://www.chessprogramming.org/Encoding_Moves
     """
+    @overload
+    def __init__(self, flags: UInt4, initial_square: UInt6, target_square: UInt6) -> None: ...
     
     def __new__(cls, flags: UInt4, initial_square: UInt6, target_square: UInt6) -> Self:
         # ensure safe types
@@ -105,4 +107,8 @@ class Move(np.uint16):
     
     @property
     def is_promotion(self) -> bool:
-        return (self.flags >> 3) != 0
+        return (self.flags >> 2) == 0b10
+    
+    @property
+    def is_promotion_capture(self) -> bool:
+        return (self.flags >> 2) == 0b11
