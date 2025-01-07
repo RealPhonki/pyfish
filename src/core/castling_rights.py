@@ -63,7 +63,15 @@ class CastlingRights(UInt4):
             if symbol in text:
                 out |= mask
         return cls(out)
-        
+    
+    def disable_white(self) -> Self:
+        """ Returns a copy of the object without white castling rights """
+        return CastlingRights(super() & 0b11)
+    
+    def disable_black(self) -> Self:
+        """ Returns a copy of the object without black castling rights """
+        return CastlingRights(super() & 0b1100)
+    
     @property
     def white_king_side(self) -> bool:
         """ Returns True if the white king can castle king-side

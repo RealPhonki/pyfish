@@ -3,7 +3,6 @@
 # pylint: disable=missing-final-newline
 # pylint: disable=wildcard-import
 # pylint: disable=import-error
-# pylint: disable=missing-function-docstring
 
 # standard
 from typing import TypeAlias, Tuple, Self
@@ -101,6 +100,13 @@ class Board:
         
         return cls(bitboards, turn, castling_rights)
     
+    def get_occupied(self) -> Bitboard:
+        """ Returns a bitboard that represents all occupied squares on the board """
+        occupied = Bitboard(0)
+        for bitboard in self.bitboards:
+            occupied |= bitboard
+        return occupied
+    
     def get_piece(self, square: int) -> int:
         """ Returns the piece that is at a given square
 
@@ -116,4 +122,5 @@ class Board:
         return None
     
     def copy(self) -> Self:
+        """ Returns a copy of the board, this method must used because this object is immutable """
         return Board(self.bitboards.copy(), self.turn, self.castling_rights)

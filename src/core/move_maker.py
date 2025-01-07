@@ -94,13 +94,16 @@ class MoveMaker:
         """
         new_board = board.copy()
         bitboards = new_board.bitboards
+        castling_rights = new_board.castling_rights
         
         if new_board.turn:
             bitboards[Piece.WHITE_KING] = squares.MASK_G1
             bitboards[Piece.WHITE_ROOK] ^= squares.MASK_H1 | squares.MASK_F1
+            new_board.castling_rights = castling_rights.disable_white
         else:
             bitboards[Piece.BLACK_KING] = squares.MASK_G8
             bitboards[Piece.BLACK_ROOK] ^= squares.MASK_H8 | squares.MASK_F8
+            new_board.castling_rights = castling_rights.disable_black
         
         return new_board
     
@@ -116,13 +119,16 @@ class MoveMaker:
         """
         new_board = board.copy()
         bitboards = new_board.bitboards
+        castling_rights = new_board.castling_rights
         
         if new_board.turn:
             bitboards[Piece.WHITE_KING] = squares.MASK_C1
             bitboards[Piece.WHITE_ROOK] ^= squares.MASK_A1 | squares.MASK_D1
+            new_board.castling_rights = castling_rights.disable_white
         else:
             bitboards[Piece.BLACK_KING] = squares.MASK_C8
             bitboards[Piece.BLACK_ROOK] ^= squares.MASK_A8 | squares.MASK_D8
+            new_board.castling_rights = castling_rights.disable_black
         
         return new_board
     
@@ -227,17 +233,22 @@ class MoveMaker:
         Returns:
             Board: The resultant board object.
         """
+        new_board = board.copy()
+        
         if move.is_quiet or move.is_double_pawn_push:
-            return cls.quiet(board, move)
+            new_board = cls.quiet(new_board, move)
         elif move.is_capture:
-            return cls.capture(board, move)
+            new_board = cls.capture(new_board, move)
         elif move.is_short_castle:
-            return cls.short_castle(board)
+            new_board = cls.short_castle(new_board)
         elif move.is_long_castle:
-            return cls.long_castle(board)
+            new_board = cls.long_castle(new_board)
         elif move.is_promotion:
-            return cls.promotion(board, move)
+            new_board = cls.promotion(new_board, move)
         elif move.is_promotion_capture:
-            return cls.promotion_capture(board, move)
+            new_board = cls.promotion_capture(new_board, move)
         elif move.is_en_passant:
-            return cls.en_passant(board, move)
+            new_board = cls.en_passant(new_board, move)
+        
+        new_board.turn = not new_board.turn
+        return new_board

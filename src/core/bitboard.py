@@ -44,6 +44,12 @@ class Bitboard(np.uint64):
     def __invert__(self) -> Self:
         return Bitboard(super().__invert__())
     
+    def __lshift__(self, other: int) -> Self:
+        return Bitboard(super().__lshift__(other))
+    
+    def __rshift__(self, other: int) -> Self:
+        return Bitboard(super().__rshift__(other))
+    
     def get_bit(self, square: int) -> int:
         """ Returns the bit value at a given square
 
@@ -53,4 +59,4 @@ class Bitboard(np.uint64):
         Returns:
             int: The value of the bit at the given index
         """
-        return (self >> np.uint64(square)) & 1
+        return (self >> np.uint64(square)) & np.uint64(1)

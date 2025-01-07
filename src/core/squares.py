@@ -142,3 +142,28 @@ MASK_F8: Bitboard = Bitboard(1 << F8)
 MASK_G8: Bitboard = Bitboard(1 << G8)
 MASK_H8: Bitboard = Bitboard(1 << H8)
 BB_MASK: List[Bitboard] = [Bitboard(1 << square) for square in SQUARES]
+
+RANK_1: List[Square] = list(range(0, 8))
+RANK_2: List[Square] = list(range(8, 16))
+RANK_3: List[Square] = list(range(16, 24))
+RANK_4: List[Square] = list(range(24, 32))
+RANK_5: List[Square] = list(range(32, 40))
+RANK_6: List[Square] = list(range(40, 48))
+RANK_7: List[Square] = list(range(48, 56))
+RANK_8: List[Square] = list(range(56, 64))
+
+MASK_RANK_1: Bitboard = Bitboard(0b11111111 << 0)
+MASK_RANK_2: Bitboard = Bitboard(0b11111111 << 8)
+MASK_RANK_3: Bitboard = Bitboard(0b11111111 << 16)
+MASK_RANK_4: Bitboard = Bitboard(0b11111111 << 24)
+MASK_RANK_5: Bitboard = Bitboard(0b11111111 << 32)
+MASK_RANK_6: Bitboard = Bitboard(0b11111111 << 40)
+MASK_RANK_7: Bitboard = Bitboard(0b11111111 << 48)
+MASK_RANK_8: Bitboard = Bitboard(0b11111111 << 56)
+RANK_MASKS: List[Bitboard] = [
+    MASK_RANK_1, MASK_RANK_2, MASK_RANK_3, MASK_RANK_4,
+    MASK_RANK_5, MASK_RANK_6, MASK_RANK_7, MASK_RANK_8
+]
+
+# *pawns cannot exist on the first and last ranks
+PAWN_SQUARES: List[Bitboard] = RANK_2 + RANK_3 + RANK_4 + RANK_5 + RANK_6 + RANK_7
