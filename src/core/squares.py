@@ -11,6 +11,7 @@ from typing import TypeAlias, List
 from src.core.bitboard import Bitboard
 
 Square: TypeAlias = int
+NONE: Square = 0
 A1: Square = 0
 B1: Square = 1
 C1: Square = 2
