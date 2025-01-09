@@ -97,11 +97,15 @@ class MoveMaker:
         castling_rights = new_board.castling_rights
         
         if new_board.turn:
+            # move the white king to g1
             bitboards[Piece.WHITE_KING] = squares.MASK_G1
+            # move the white rook (ASSUMING IT EXISTS) to F1
             bitboards[Piece.WHITE_ROOK] ^= squares.MASK_H1 | squares.MASK_F1
             new_board.castling_rights = castling_rights.disable_white
         else:
+            # move the black king to g8
             bitboards[Piece.BLACK_KING] = squares.MASK_G8
+            # move the black rook (ASSUMING IT EXISTS) to F8
             bitboards[Piece.BLACK_ROOK] ^= squares.MASK_H8 | squares.MASK_F8
             new_board.castling_rights = castling_rights.disable_black
         
@@ -122,11 +126,15 @@ class MoveMaker:
         castling_rights = new_board.castling_rights
         
         if new_board.turn:
+            # move the white king to c1
             bitboards[Piece.WHITE_KING] = squares.MASK_C1
+            # move the white rook (ASSUMING IT EXISTS) to D1
             bitboards[Piece.WHITE_ROOK] ^= squares.MASK_A1 | squares.MASK_D1
             new_board.castling_rights = castling_rights.disable_white
         else:
+            # move the black king to c8
             bitboards[Piece.BLACK_KING] = squares.MASK_C8
+            # move the black rook (ASSUMING IT EXISTS) to D8
             bitboards[Piece.BLACK_ROOK] ^= squares.MASK_A8 | squares.MASK_D8
             new_board.castling_rights = castling_rights.disable_black
         
@@ -147,10 +155,14 @@ class MoveMaker:
         bitboards = new_board.bitboards
         
         if new_board.turn:
+            # move the pawn with xor
             bitboards[Piece.WHITE_PAWN] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+            # destroy the enemy pawn
             bitboards[Piece.BLACK_PAWN] &= ~BB_MASK[move.target_square - 8]
         else:
+            # move the pawn with xor
             bitboards[Piece.BLACK_PAWN] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+            # destroy the enemy pawn
             bitboards[Piece.WHITE_PAWN] &= ~BB_MASK[move.target_square + 8]
         
         return new_board
@@ -237,6 +249,8 @@ class MoveMaker:
         
         if move.is_quiet or move.is_double_pawn_push:
             new_board = cls.quiet(new_board, move)
+        elif move.is_en_passant:
+            new_board = cls.en_passant(new_board, move)
         elif move.is_capture:
             new_board = cls.capture(new_board, move)
         elif move.is_short_castle:
@@ -247,8 +261,6 @@ class MoveMaker:
             new_board = cls.promotion(new_board, move)
         elif move.is_promotion_capture:
             new_board = cls.promotion_capture(new_board, move)
-        elif move.is_en_passant:
-            new_board = cls.en_passant(new_board, move)
         
         new_board.turn = not new_board.turn
         return new_board
