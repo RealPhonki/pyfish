@@ -66,11 +66,11 @@ class CastlingRights(UInt4):
     
     def disable_white(self) -> Self:
         """ Returns a copy of the object without white castling rights """
-        return CastlingRights(super() & 0b11)
+        return CastlingRights(int(self) & 0b11)
     
     def disable_black(self) -> Self:
         """ Returns a copy of the object without black castling rights """
-        return CastlingRights(super() & 0b1100)
+        return CastlingRights(int(self) & 0b1100)
     
     @property
     def white_king_side(self) -> bool:
@@ -79,7 +79,7 @@ class CastlingRights(UInt4):
         Returns:
             bool: Whether the white king can castle king-side
         """
-        return self & 0x1
+        return bool(int(self) & 0x1)
     
     @property
     def white_queen_side(self) -> bool:
@@ -88,7 +88,7 @@ class CastlingRights(UInt4):
         Returns:
             bool: whether the white king can castle queen-side
         """
-        return self & 0x2
+        return bool(int(self) & 0x2)
     
     @property
     def black_king_side(self) -> bool:
@@ -97,7 +97,7 @@ class CastlingRights(UInt4):
         Returns:
             bool: Whether the black king can castle king-side
         """
-        return self & 0x4
+        return bool(int(self) & 0x4)
     
     @property
     def black_queen_side(self) -> bool:
@@ -106,4 +106,4 @@ class CastlingRights(UInt4):
         Returns:
             bool: Whether the black king can castle queen-side
         """
-        return self & 0x8
+        return bool(int(self) & 0x8)
