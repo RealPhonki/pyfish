@@ -8,7 +8,6 @@
 from typing import List
 
 # project
-from src.core.move_maker import MoveMaker
 from src.core.bitboard import Bitboard
 from src.core.piece import Piece
 from src.core.board import Board
@@ -103,9 +102,3 @@ class PawnMoves:
             single_push_moves = cls._black_get_quiet(board)
         
         return single_push_moves
-
-if __name__ == '__main__':
-    test_board = Board.from_fen("rnbqkbnr/pppppppp/2p1P3/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
-    test_moves = PawnMoves.get(test_board)
-    for move in test_moves:
-        print(MoveMaker.push(test_board, move))
