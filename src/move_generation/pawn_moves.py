@@ -18,6 +18,62 @@ from src.core import squares
 class PawnMoves:
     """ Handles all legal pawn move generation for a given board state """
     @staticmethod
+    def _white_get_promotion(board: Board) -> List[Move]:
+        legal_moves = []
+        
+        # get all empty squares
+        occupied = board.get_occupied()
+        empty = ~occupied
+        
+        # get all the white pawns on the board, only view pawns that will promote
+        pawns = board.bitboards[Piece.WHITE_PAWN] & squares.MASK_RANK_7
+        
+        # shift the white pawns bitboard upwards by one tile and destroy those that
+        # collide with other pieces, this generates a list of squares that pawns
+        # can move to without capturing.
+        single_push_targets = (pawns << 8) & empty
+        
+        # then we loop through each of the pawn targets and generate all legal promotions
+        for square in squares.RANK_8:
+            if (single_push_targets & Bitboard(1 << square)) != 0:
+                legal_moves.extend([
+                    Move(Flags.QUEEN_PROMOTE,  square - 8, square),
+                    Move(Flags.ROOK_PROMOTE,   square - 8, square),
+                    Move(Flags.BISHOP_PROMOTE, square - 8, square),
+                    Move(Flags.KNIGHT_PROMOTE, square - 8, square),
+                ])
+        
+        return legal_moves
+    
+    @staticmethod
+    def _black_get_promotion(board: Board) -> List[Move]:
+        legal_moves = []
+        
+        # get all empty squares
+        occupied = board.get_occupied()
+        empty = ~occupied
+        
+        # get all the white pawns on the board, only view pawns that will promote
+        pawns = board.bitboards[Piece.BLACK_PAWN] & squares.MASK_RANK_2
+        
+        # shift the white pawns bitboard downwards by one tile and destroy those that
+        # collide with other pieces, this generates a list of squares that pawns
+        # can move to without capturing.
+        single_push_targets = (pawns >> 8) & empty
+        
+        # then we loop through each of the pawn targets and generate all legal promotions
+        for square in squares.RANK_1:
+            if (single_push_targets & Bitboard(1 << square)) != 0:
+                legal_moves.extend([
+                    Move(Flags.QUEEN_PROMOTE,  square + 8, square),
+                    Move(Flags.ROOK_PROMOTE,   square + 8, square),
+                    Move(Flags.BISHOP_PROMOTE, square + 8, square),
+                    Move(Flags.KNIGHT_PROMOTE, square + 8, square),
+                ])
+        
+        return legal_moves
+    
+    @staticmethod
     def _white_get_quiet(board: Board) -> List[Move]:
         legal_moves = []
         
