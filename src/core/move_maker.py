@@ -6,7 +6,7 @@
 # pylint: disable=line-too-long
 
 # project
-from src.core.squares import BB_MASK
+from src.core.squares import MASKS
 from src.core.piece import Piece
 from src.core.board import Board
 from src.core.move import Move
@@ -53,7 +53,7 @@ class MoveMaker:
         piece_type = new_board.get_piece(move.initial_square)
         
         # move the piece with xor
-        bitboards[piece_type] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+        bitboards[piece_type] ^= MASKS[move.initial_square] | MASKS[move.target_square]
         
         return new_board
 
@@ -75,10 +75,10 @@ class MoveMaker:
         piece_to_capture = new_board.get_piece(move.target_square)
         
         # move the piece with xor
-        bitboards[piece_type] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+        bitboards[piece_type] ^= MASKS[move.initial_square] | MASKS[move.target_square]
         
         # destroy the piece at the target square
-        bitboards[piece_to_capture] &= ~BB_MASK[move.target_square]
+        bitboards[piece_to_capture] &= ~MASKS[move.target_square]
         
         return new_board
     
@@ -156,14 +156,14 @@ class MoveMaker:
         
         if new_board.turn:
             # move the pawn with xor
-            bitboards[Piece.WHITE_PAWN] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+            bitboards[Piece.WHITE_PAWN] ^= MASKS[move.initial_square] | MASKS[move.target_square]
             # destroy the enemy pawn
-            bitboards[Piece.BLACK_PAWN] &= ~BB_MASK[move.target_square - 8]
+            bitboards[Piece.BLACK_PAWN] &= ~MASKS[move.target_square - 8]
         else:
             # move the pawn with xor
-            bitboards[Piece.BLACK_PAWN] ^= BB_MASK[move.initial_square] | BB_MASK[move.target_square]
+            bitboards[Piece.BLACK_PAWN] ^= MASKS[move.initial_square] | MASKS[move.target_square]
             # destroy the enemy pawn
-            bitboards[Piece.WHITE_PAWN] &= ~BB_MASK[move.target_square + 8]
+            bitboards[Piece.WHITE_PAWN] &= ~MASKS[move.target_square + 8]
         
         return new_board
     
@@ -184,16 +184,16 @@ class MoveMaker:
         
         if new_board.turn:
             # delete initial pawn
-            bitboards[Piece.WHITE_PAWN] &= ~BB_MASK[move.initial_square]
+            bitboards[Piece.WHITE_PAWN] &= ~MASKS[move.initial_square]
             
             # add promoted piece
-            bitboards[cls.white_promotion[promotion_encoding]] |= BB_MASK[move.target_square]
+            bitboards[cls.white_promotion[promotion_encoding]] |= MASKS[move.target_square]
         else:
             # delete initial pawn
-            bitboards[Piece.BLACK_PAWN] &= ~BB_MASK[move.initial_square]
+            bitboards[Piece.BLACK_PAWN] &= ~MASKS[move.initial_square]
             
             # add promoted piece
-            bitboards[cls.black_promotion[promotion_encoding]] |= BB_MASK[move.target_square]
+            bitboards[cls.black_promotion[promotion_encoding]] |= MASKS[move.target_square]
         
         return new_board
     
@@ -214,20 +214,20 @@ class MoveMaker:
         piece_to_capture = new_board.get_piece(move.target_square)
         
         # delete target square
-        bitboards[piece_to_capture] &= ~BB_MASK[move.target_square]
+        bitboards[piece_to_capture] &= ~MASKS[move.target_square]
         
         if new_board.turn:
             # delete initial pawn
-            bitboards[Piece.WHITE_PAWN] &= ~BB_MASK[move.initial_square]
+            bitboards[Piece.WHITE_PAWN] &= ~MASKS[move.initial_square]
             
             # add promoted piece
-            bitboards[cls.white_promotion[promotion_encoding]] |= BB_MASK[move.target_square]
+            bitboards[cls.white_promotion[promotion_encoding]] |= MASKS[move.target_square]
         else:
             # delete initial pawn
-            bitboards[Piece.BLACK_PAWN] &= ~BB_MASK[move.initial_square]
+            bitboards[Piece.BLACK_PAWN] &= ~MASKS[move.initial_square]
             
             # add promoted piece
-            bitboards[cls.black_promotion[promotion_encoding]] |= BB_MASK[move.target_square]
+            bitboards[cls.black_promotion[promotion_encoding]] |= MASKS[move.target_square]
         
         return new_board
     

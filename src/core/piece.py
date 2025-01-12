@@ -5,7 +5,23 @@
 # pylint: disable=import-error
 
 # standard
-from typing import TypeAlias, List
+from typing import TypeAlias, List, Union
+
+NoneIndex: TypeAlias = any
+
+class CustomList(list):
+    """ This class needs to be created since occasionally empty tiles are indexed and
+    the Piece class needs to return something.
+
+    """
+    def __init__(self, elements: list, none_index: NoneIndex) -> None:
+        self.none_index = none_index
+        super().__init__(elements)
+    
+    def __getitem__(self, index: Union[int, None]) -> NoneIndex:
+        if index is None:
+            return self.none_index
+        return super().__getitem__(index)
 
 class Piece:
     """
@@ -26,4 +42,4 @@ class Piece:
     BLACK_QUEEN:  PieceType = 10
     BLACK_KING:   PieceType = 11
     TYPES: List[PieceType] = list(range(12))
-    SYMBOL = ["P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k"]
+    SYMBOL = CustomList(["P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k"], ".")

@@ -2,5 +2,6 @@ iniconfig==2.0.0
 numpy==2.2.1
 packaging==24.2
 pluggy==1.5.0
--e git+https://github.com/RealPhonki/pyfish.git@17255bbd1295262d8397ffb2fc67b33b5fc3533a#egg=pyfish
+-e git+https://github.com/RealPhonki/pyfish.git@5085e697413731d8832b2ff3d6d252a9d9338ea8#egg=pyfish
+pygame-ce==2.5.2
 pytest==8.3.4

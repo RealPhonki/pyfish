@@ -10,8 +10,11 @@ from typing import TypeAlias, List
 # project
 from src.core.bitboard import Bitboard
 
+WHITE = True
+BLACK = False
+
 Square: TypeAlias = int
-NONE: Square = 0
+NONE: Square = None
 A1: Square = 0
 B1: Square = 1
 C1: Square = 2
@@ -142,7 +145,7 @@ MASK_E8: Bitboard = Bitboard(1 << E8)
 MASK_F8: Bitboard = Bitboard(1 << F8)
 MASK_G8: Bitboard = Bitboard(1 << G8)
 MASK_H8: Bitboard = Bitboard(1 << H8)
-BB_MASK: List[Bitboard] = [Bitboard(1 << square) for square in SQUARES]
+MASKS: List[Bitboard] = [Bitboard(1 << square) for square in SQUARES]
 
 RANK_1: List[Square] = list(range(0, 8))
 RANK_2: List[Square] = list(range(8, 16))

@@ -5,7 +5,7 @@
 # pylint: disable=import-error
 
 # standard
-from typing import TypeAlias, Tuple, Self
+from typing import Self
 from dataclasses import dataclass
 
 # third party
@@ -15,9 +15,7 @@ import numpy as np
 from src.core.castling_rights import CastlingRights
 from src.core.bitboard import Bitboard
 from src.core.piece import Piece
-from src.core.squares import BB_MASK
-
-Board: TypeAlias = Tuple[np.ndarray[Bitboard], bool, CastlingRights]
+from src.core.squares import MASKS
 
 class InvalidFENError(Exception):
     """ Represents an invalid fen string input. """
@@ -95,7 +93,7 @@ class Board:
             else: # place the piece on the corresponding bitboard
                 piece_type = Piece.SYMBOL.index(character)
                 square = column + row * 8
-                bitboards[piece_type] |= BB_MASK[square]
+                bitboards[piece_type] |= MASKS[square]
                 column += 1
         
         return cls(bitboards, turn, castling_rights)
